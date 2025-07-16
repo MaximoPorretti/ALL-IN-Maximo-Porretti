@@ -4,15 +4,25 @@ import org.springframework.web.client.RestTemplate;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+@Service
 public class DistanceService {
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String apiKey = "AIzaSyDvT66VQ2YuyfZhp1ymuf8-H_3eo6vT9oU";
+
+    @Value("${google.api.key}")
+    private String apiKey;
 
     public double getDistanceInKm(String origin, String destination) throws Exception {
+        String encodedOrigin = URLEncoder.encode(origin, StandardCharsets.UTF_8);
+        String encodedDestination = URLEncoder.encode(destination, StandardCharsets.UTF_8);
         String url = String.format(
             "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&key=%s",
-            origin.replace(" ", "+"),
-            destination.replace(" ", "+"),
+            encodedOrigin,
+            encodedDestination,
             apiKey
         );
 
@@ -31,13 +41,4 @@ public class DistanceService {
         return distance.getDouble("value") / 1000.0;
     }
 
-    public static void main(String[] args) {
-        DistanceService service = new DistanceService();
-        try {
-            double distancia = service.getDistanceInKm("Buenos Aires", "Cordoba");
-            System.out.println("Distancia entre Buenos Aires y Córdoba: " + distancia + " km");
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
 }
