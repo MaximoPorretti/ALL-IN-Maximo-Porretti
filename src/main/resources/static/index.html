@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALL IN - Plataforma de Gestión de Cargas</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; }
+      .icon-min { display: inline-flex; align-items: center; justify-content: center; width: 1.5em; height: 1.5em; border-radius: 50%; background: #e0f2fe; color: #0f766e; margin-right: 0.5em; font-size: 1.1em; }
+      .icon-green { background: #e0fbe6; color: #059669; }
+      .icon-yellow { background: #fef9c3; color: #eab308; }
+      .icon-blue { background: #dbeafe; color: #2563eb; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header bg-gradient-to-r from-blue-900 via-blue-800 to-teal-700 text-white shadow-2xl">
+        <div class="container mx-auto px-4 py-6">
+            <div class="header-content flex items-center justify-between">
+                <div class="logo-section flex items-center space-x-4">
+                    <div class="logo-text">
+                        <h1 class="text-4xl font-extrabold tracking-tight" style="font-family: 'Sora', 'Inter', sans-serif; letter-spacing: 0.01em; font-size:2.7rem; color:#fff; text-transform:uppercase;">ALL IN</h1>
+                        <p class="description text-blue-200 text-xs">Logística simple, rápida y digital</p>
+                    </div>
+                </div>
+                <nav class="nav hidden md:flex space-x-8">
+                    <a href="#" class="nav-link hover:text-blue-200 transition-colors font-medium">Servicios</a>
+                    <a href="#" class="nav-link hover:text-blue-200 transition-colors font-medium">Contacto</a>
+                    <a href="#" class="nav-link hover:text-blue-200 transition-colors font-medium">Ayuda</a>
+                    <a href="#" class="nav-link hover:text-blue-200 transition-colors font-medium">Iniciar Sesión</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h2 class="hero-title text-5xl font-extrabold text-gray-900 mb-6" style="font-family: 'Inter', sans-serif; letter-spacing: -2px;">Cotizá, reservá y rastreá tu carga en minutos</h2>
+            <p class="hero-description text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed" style="font-family: 'Inter', sans-serif;">
+                Gestión Inteligente de Cargas <br>
+                <span style="color:#0f766e; font-weight:600;">Simple, transparente y 100% online.</span>
+            </p>
+            <div class="flex justify-center space-x-8 mt-8" style="font-family: 'Inter', sans-serif;">
+                <div class="flex items-center space-x-2 text-green-600">
+                    <span class="icon-min icon-green">✔</span>
+                    <span class="font-medium">Sin llamadas ni demoras</span>
+                </div>
+                <div class="flex items-center space-x-2 text-green-600">
+                    <span class="icon-min icon-green">⚡</span>
+                    <span class="font-medium">Disponibilidad inmediata</span>
+                </div>
+                <div class="flex items-center space-x-2 text-green-600">
+                    <span class="icon-min icon-green">💳</span>
+                    <span class="font-medium">Pago y reserva digital</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs mb-8">
+            <div class="tabs-nav grid grid-cols-3 bg-white shadow-lg">
+                <button class="tab-button active" data-tab="quote"><span>🧮</span> Nueva Cotización</button>
+                <button class="tab-button" data-tab="tracking"><span>🔎</span> Seguimiento</button>
+                <button class="tab-button" data-tab="drivers"><span>👥</span> Para Transportistas</button>
+            </div>
+            <div class="tab-content active" id="quote-tab">
+                <div class="quote-layout">
+                    <!-- Formulario Cotización -->
+                    <div>
+                        <div class="card shadow-2xl border-0 bg-white/90 backdrop-blur">
+                            <div class="card-header bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-t-lg">
+                                <div class="card-title flex items-center space-x-2 text-xl">
+                                    <span>🧮</span> Solicitar Cotización
+                                </div>
+                                <p class="card-description">Completá los datos de tu envío y obtené tu tarifa al instante</p>
+                            </div>
+                            <div class="card-content">
+                                <form id="quote-form">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="origin" class="form-label">Ciudad de Origen *</label>
+                                            <input type="text" id="origin" name="origin" placeholder="Ej: Buenos Aires, CABA" required>
+                                            <small>Por ciudad, código postal o geolocalización</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="destination" class="form-label">Ciudad de Destino *</label>
+                                            <input type="text" id="destination" name="destination" placeholder="Ej: Rosario, Santa Fe" required>
+                                            <small>Distancia calculada automáticamente</small>
+                                        </div>
+                                    </div>
+                                    <div class="separator"></div>
+                                    <div class="section">
+                                        <h4 class="section-title">Especificaciones de la Carga</h4>
+                                        <div class="form-row-4">
+                                            <div class="form-group">
+                                                <label for="weight">Peso (kg) *</label>
+                                                <input type="number" id="weight" name="weight" placeholder="3500" min="0" step="0.1" required>
+                                                <small>Tarifa: $0.50 por kg</small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="length">Largo (cm)</label>
+                                                <input type="number" id="length" name="length" placeholder="200" min="0">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="width">Ancho (cm)</label>
+                                                <input type="number" id="width" name="width" placeholder="150" min="0">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="height">Alto (cm)</label>
+                                                <input type="number" id="height" name="height" placeholder="100" min="0">
+                                            </div>
+                                        </div>
+                                        <div id="volume-display" class="volume-info" style="display: none;">
+                                            <p><strong>Volumen calculado:</strong> <span id="volume-value">0</span> m³ <small>(Tarifa: $0.80 por m³)</small></p>
+                                        </div>
+                                    </div>
+                                    <div class="separator"></div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="scheduledDate">Fecha Programada</label>
+                                            <input type="date" id="scheduledDate" name="scheduledDate">
+                                        </div>
+                                        <div class="form-group checkbox-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="urgency" name="urgency">
+                                                <span class="checkmark"></span>
+                                                Servicio Urgente (+15% sobre costo base)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-warning">
+                                        <div>
+                                            <strong>Información Importante:</strong> Si la información proporcionada tiene una gran discrepancia en su peso, dimensiones o características, esto podría resultar en ajustes en la tarifa final o en el proceso de asignación del transportista.
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-large" id="calculate-btn">
+                                        <span class="btn-text">Obtener Cotización y Disponibilidad</span>
+                                        <div class="loading-spinner" style="display: none;">
+                                            <div class="spinner"></div>
+                                            <span>Calculando...</span>
+                                        </div>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Info Cotización -->
+                    <div>
+                        <div class="card shadow-2xl border-0 bg-white/90 backdrop-blur">
+                            <div class="card-header bg-blue-700 text-white rounded-t-lg">
+                                <div class="card-title flex items-center space-x-2 text-xl">
+                                    <span>🛡️</span> ¿Por qué elegir ALL IN?
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                                    <li>Precios claros y reserva inmediata</li>
+                                    <li>Sin llamadas ni demoras</li>
+                                    <li>Seguimiento en tiempo real</li>
+                                    <li>Red de transportistas verificados</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Resultados -->
+                <div class="quote-results-section">
+                    <div id="quote-result" class="card quote-result-card" style="display: none;">
+                        <div class="card-header">
+                            <h3 class="card-title">Cotización Generada</h3>
+                            <div class="badge" id="drivers-badge">0 transportistas disponibles</div>
+                            <p class="card-description">Válida hasta: <span id="valid-until"></span></p>
+                        </div>
+                        <div class="card-content">
+                            <div class="quote-total">
+                                <div class="total-price" id="total-price">$0</div>
+                                <p>Precio Total Estimado</p>
+                                <p class="quote-details">
+                                    Tiempo estimado: <span id="estimated-days">0</span> días • <span id="distance">0</span> km
+                                </p>
+                            </div>
+                            <button class="btn btn-outline" id="toggle-breakdown">Ver Desglose de Costos</button>
+                            <div id="cost-breakdown" class="cost-breakdown" style="display: none;">
+                                <div class="breakdown-item">
+                                    <span>Base por distancia:</span>
+                                    <span id="distance-cost">$0</span>
+                                </div>
+                                <div class="breakdown-item">
+                                    <span>Cargo por peso:</span>
+                                    <span id="weight-cost">$0</span>
+                                </div>
+                                <div class="breakdown-item" id="volume-cost-item" style="display: none;">
+                                    <span>Cargo por volumen:</span>
+                                    <span id="volume-cost">$0</span>
+                                </div>
+                                <div class="breakdown-item" id="urgency-cost-item" style="display: none;">
+                                    <span>Cargo por urgencia:</span>
+                                    <span id="urgency-cost">$0</span>
+                                </div>
+                                <div class="separator"></div>
+                                <div class="breakdown-item breakdown-total">
+                                    <span>Total:</span>
+                                    <span id="breakdown-total">$0</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-success btn-large" id="accept-quote">
+                                Aceptar y Reservar Viaje
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="tracking-tab">
+                <div class="card shadow-2xl border-0 bg-white/90 backdrop-blur">
+                    <div class="card-header" style="background: linear-gradient(90deg, #2563eb 0%, #0d9488 100%);">
+                        <div class="card-title flex items-center space-x-2 text-xl">
+                            <span>🔎</span> Seguimiento de Carga
+                        </div>
+                        <p class="card-description">Ingrese su código de reserva para rastrear su envío</p>
+                    </div>
+                    <div class="card-content">
+                        <form id="tracking-form">
+                            <div class="form-group">
+                                <label for="tracking-code" class="form-label">Código de reserva (Ej: ALI-ABC123XYZ)</label>
+                                <input type="text" id="tracking-code" name="tracking-code" placeholder="ALI-ABC123XYZ" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-large">Rastrear Envío</button>
+                        </form>
+                        <div id="tracking-result" class="tracking-result" style="display: none;"></div>
+                        <div class="mt-8 p-6 rounded-xl bg-gray-50 shadow-sm">
+                            <div class="font-semibold mb-2">Estados de seguimiento:</div>
+                            <ul style="font-size:1.1em;">
+                                <li><span class="icon-min icon-blue">●</span> Aceptado - Asignando transportista</li>
+                                <li><span class="icon-min icon-yellow">●</span> En camino - Transportista asignado</li>
+                                <li><span class="icon-min icon-green">●</span> Entregado - Viaje completado</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-content" id="drivers-tab">
+                <div class="card shadow-2xl border-0 bg-white/90 backdrop-blur">
+                    <div class="card-header" style="background: linear-gradient(90deg, #10b981 0%, #0ea5e9 100%);">
+                        <div class="card-title flex items-center space-x-2 text-xl">
+                            <span>👥</span> Portal para Transportistas
+                        </div>
+                        <p class="card-description">Únete a nuestra red digitalizada de transportistas</p>
+                    </div>
+                    <div class="card-content" style="display: flex; flex-wrap: wrap; gap: 2rem;">
+                        <div style="flex:2; min-width: 250px;">
+                            <div class="font-semibold mb-2" style="font-size:1.2em;">¿Cómo funciona para el transportista?</div>
+                            <ol style="list-style:none; padding-left:0;">
+                                <li style="margin-bottom:0.7em;"><span class="icon-min icon-green">1</span> Crea tu cuenta y registra tu vehículo</li>
+                                <li style="margin-bottom:0.7em;"><span class="icon-min icon-green">2</span> Indica tus zonas de cobertura y disponibilidad</li>
+                                <li style="margin-bottom:0.7em;"><span class="icon-min icon-green">3</span> Acepta viajes que el sistema te asigna</li>
+                                <li><span class="icon-min icon-green">4</span> Ve historial de viajes y pagos</li>
+                            </ol>
+                        </div>
+                        <div style="flex:2; min-width: 250px; background: #f0fdf4; border-radius: 1em; padding: 1.5em;">
+                            <div class="font-semibold mb-2">Ventajas de unirte:</div>
+                            <ul style="padding-left:0; list-style:none;">
+                                <li style="margin-bottom:0.7em;"><span class="icon-min icon-green">✔</span> Asignación automática de viajes</li>
+                                <li style="margin-bottom:0.7em;"><span class="icon-min icon-green">✔</span> Pagos garantizados y puntuales</li>
+                                <li style="margin-bottom:0.7em;"><span class="icon-min icon-green">✔</span> Optimización de rutas</li>
+                                <li><span class="icon-min icon-green">✔</span> Soporte técnico 24/7</li>
+                            </ul>
+                            <button class="btn btn-success btn-large mt-4" style="width:100%; margin-top:1.5em;">Registrarse como Transportista</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="/js/app.js"></script>
+</body>
+</html> 
