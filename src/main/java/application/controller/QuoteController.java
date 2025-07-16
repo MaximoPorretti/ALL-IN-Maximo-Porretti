@@ -3,6 +3,7 @@ package application.controller;
 import application.dtos.QuoteRequestDTO;
 import application.dtos.QuoteResultDTO;
 import application.service.DistanceService;
+import application.service.TrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,9 @@ public class QuoteController {
 
     @Autowired
     private DistanceService distanceService;
+
+    @Autowired
+    private TrackingService trackingService;
 
     @PostMapping("/calculate")
     public ResponseEntity<QuoteResultDTO> calculateQuote(@RequestBody QuoteRequestDTO request) {
@@ -50,8 +54,8 @@ public class QuoteController {
 
     @PostMapping("/accept")
     public ResponseEntity<String> acceptQuote(@RequestBody QuoteRequestDTO request) {
-        // Aquí deberías guardar la cotización y generar un código de seguimiento
         String trackingCode = "TRK" + System.currentTimeMillis();
+        trackingService.addTracking(trackingCode, request);
         return ResponseEntity.ok(trackingCode);
     }
-} 
+}
