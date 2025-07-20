@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cotización</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 200px; padding: 8px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Test de Cotización</h1>
+    
+    <form id="test-form">
+        <div class="form-group">
+            <label for="origin">Origen:</label>
+            <input type="text" id="origin" name="origin" value="Buenos Aires" required>
+        </div>
+        <div class="form-group">
+            <label for="destination">Destino:</label>
+            <input type="text" id="destination" name="destination" value="Rosario" required>
+        </div>
+        <div class="form-group">
+            <label for="weight">Peso (kg):</label>
+            <input type="number" id="weight" name="weight" value="3500" required>
+        </div>
+        <div class="form-group">
+            <label for="length">Largo (cm):</label>
+            <input type="number" id="length" name="length" value="200">
+        </div>
+        <div class="form-group">
+            <label for="width">Ancho (cm):</label>
+            <input type="number" id="width" name="width" value="150">
+        </div>
+        <div class="form-group">
+            <label for="height">Alto (cm):</label>
+            <input type="number" id="height" name="height" value="100">
+        </div>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="urgency" name="urgency">
+                Servicio Urgente
+            </label>
+        </div>
+        <button type="submit">Calcular Cotización</button>
+    </form>
+    
+    <div id="result" class="result" style="display: none;">
+        <h3>Resultado:</h3>
+        <div id="result-content"></div>
+    </div>
+
+    <script>
+        document.getElementById('test-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const quoteData = {
+                origin: formData.get("origin"),
+                destination: formData.get("destination"),
+                weight: Number.parseFloat(formData.get("weight")),
+                height: Number.parseFloat(formData.get("height")) || 0,
+                width: Number.parseFloat(formData.get("width")) || 0,
+                length: Number.parseFloat(formData.get("length")) || 0,
+                urgency: formData.get("urgency") === "on"
+            };
+            
+            console.log("Enviando datos:", quoteData);
+            
+            try {
+                const response = await fetch("/api/quote/calculate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(quoteData),
+                });
+                
+                console.log("Response status:", response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log("Resultado:", result);
+                    
+                    document.getElementById('result-content').innerHTML = `
+                        <p><strong>Precio Total:</strong> $${result.totalCost.toLocaleString("es-AR")}</p>
+                        <p><strong>Distancia:</strong> ${Math.round(result.baseDistance)} km</p>
+                        <p><strong>Días estimados:</strong> ${result.estimatedDays}</p>
+                        <p><strong>Transportistas disponibles:</strong> ${result.availableDrivers}</p>
+                        <p><strong>Válido hasta:</strong> ${result.validUntil}</p>
+                        <p><strong>Costo por distancia:</strong> $${result.distanceCost.toLocaleString("es-AR")}</p>
+                        <p><strong>Costo por peso:</strong> $${result.weightCost.toLocaleString("es-AR")}</p>
+                        <p><strong>Costo por volumen:</strong> $${result.volumeCost.toLocaleString("es-AR")}</p>
+                        <p><strong>Costo por urgencia:</strong> $${result.urgencyCost.toLocaleString("es-AR")}</p>
+                    `;
+                    
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    const errorText = await response.text();
+                    console.error("Error:", errorText);
+                    alert("Error al calcular la cotización");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Error al calcular la cotización");
+            }
+        });
+    </script>
+</body>
+</html> 

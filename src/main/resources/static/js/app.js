@@ -307,6 +307,7 @@ function initializeTrackingForm() {
 // Handle tracking form submission
 async function handleTrackingSubmission(event) {
   event.preventDefault()
+<<<<<<< HEAD
 }
 
 // Función placeholder para cargar envíos del cliente
@@ -314,3 +315,40 @@ function loadMisEnvios() {
   console.log("Función loadMisEnvios llamada")
   // Esta función se implementará cuando sea necesario
 } 
+=======
+
+  const trackingCodeInput = document.getElementById("tracking-code")
+  const trackingCode = trackingCodeInput.value.trim()
+  const resultDiv = document.getElementById("tracking-result")
+
+  resultDiv.style.display = "none"
+  resultDiv.textContent = ""
+
+  if (!trackingCode) {
+    alert("Por favor ingrese el código de reserva")
+    return
+  }
+
+  try {
+    const response = await fetch(`/api/tracking/${encodeURIComponent(trackingCode)}`)
+
+    if (response.ok) {
+      const data = await response.json()
+      resultDiv.innerHTML = `
+        <p><strong>Origen:</strong> ${data.origin}</p>
+        <p><strong>Destino:</strong> ${data.destination}</p>
+        <p><strong>Estado:</strong> ${data.status}</p>
+      `
+    } else if (response.status === 404) {
+      resultDiv.textContent = "Envío no encontrado"
+    } else {
+      throw new Error("Error al obtener el seguimiento")
+    }
+  } catch (error) {
+    console.error("Error:", error)
+    resultDiv.textContent = "Ocurrió un error al consultar el seguimiento"
+  } finally {
+    resultDiv.style.display = "block"
+  }
+}
+>>>>>>> origin/codex/encontrar-y-corregir-un-fallo-en-el-codigo
