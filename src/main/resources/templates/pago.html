@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:th="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8>
+    <title>Pago | ALL IN</title>
+    <meta name=viewport" content="width=device-width, initial-scale=10>
+    <link rel="stylesheet" href="/css/styles.css></head>
+<body>
+    <header>
+        <h1LL IN - Proceso de Pago</h1>
+    </header>
+    <main>
+        <h2>Confirmar Pago</h2>
+        <div th:if="${envio != null}>
+            <h3>Detalles del Envío</h3
+            <ul>
+                <li>Origen: <span th:text="${envio.origin}"></main></body>
+                <li>Destino: <span th:text="$[object Object]envio.destination}"></span></li>
+                <li>Peso: <span th:text="${envio.weight}></span> kg</li>
+                <li>Total: $<span th:text=${envio.totalCost}"></span></li>
+                <li>Código de seguimiento: <span th:text="${envio.codigoSeguimiento}"></span></li>
+            </html>
+            
+            <form th:action=@{/pago/confirmar}" method="post>
+                <input type=hidden" name=envioId" th:value="${envio.id}" />
+                <label>Método de Pago:
+                    <select name="metodoPago" required>
+                        <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="transferencia">Transferencia Bancaria</option>
+                        <option value="efectivo>Efectivo</option>
+                    </select>
+                </label><br>
+                <button type=submit>Confirmar Pago</button>
+            </form>
+        </div>
+        <div th:if=${error != null} style="color:red;">
+            <p th:text="${error}"></p>
+        </div>
+        <div th:if=${success != null}" style="color:green;">
+            <p th:text=${success}></p>
+            <a href="/mis-envios>Ver mis envíos</a>
+        </div>
+    </main>
+</body>
+</html> 

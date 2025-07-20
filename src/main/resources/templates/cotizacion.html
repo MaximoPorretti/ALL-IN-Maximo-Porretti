@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cotizar Envío | ALL IN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>ALL IN - Cotización de Envíos</h1>
+    </header>
+    <main>
+        <h2>Solicitar Cotización</h2>
+        <form th:action="@{/cotizar}" th:object="${cotizacionForm}" method="post">
+            <label>Origen: <input type="text" th:field="*{origin}" required></label><br>
+            <label>Destino: <input type="text" th:field="*{destination}" required></label><br>
+            <label>Peso (kg): <input type="number" th:field="*{weight}" min="0" step="0.1" required></label><br>
+            <label>Largo (cm): <input type="number" th:field="*{length}" min="0"></label><br>
+            <label>Ancho (cm): <input type="number" th:field="*{width}" min="0"></label><br>
+            <label>Alto (cm): <input type="number" th:field="*{height}" min="0"></label><br>
+            <label>Urgente: <input type="checkbox" th:field="*{urgency}"></label><br>
+            <button type="submit">Obtener Cotización</button>
+        </form>
+
+        <div th:if="${quoteResult != null}">
+            <h3>Resultado de la Cotización</h3>
+            <ul>
+                <li>Total: <span th:text="${quoteResult.totalCost}"></span></li>
+                <li>Distancia: <span th:text="${quoteResult.baseDistance}"></span> km</li>
+                <li>Días estimados: <span th:text="${quoteResult.estimatedDays}"></span></li>
+                <li>Transportistas disponibles: <span th:text="${quoteResult.availableDrivers}"></span></li>
+                <li>Válida hasta: <span th:text="${quoteResult.validUntil}"></span></li>
+            </ul>
+            <form th:action="@{/cotizar/aceptar}" method="post">
+                <input type="hidden" name="origin" th:value="${cotizacionForm.origin}" />
+                <input type="hidden" name="destination" th:value="${cotizacionForm.destination}" />
+                <input type="hidden" name="weight" th:value="${cotizacionForm.weight}" />
+                <input type="hidden" name="length" th:value="${cotizacionForm.length}" />
+                <input type="hidden" name="width" th:value="${cotizacionForm.width}" />
+                <input type="hidden" name="height" th:value="${cotizacionForm.height}" />
+                <input type="hidden" name="urgency" th:value="${cotizacionForm.urgency}" />
+                <input type="hidden" name="totalCost" th:value="${quoteResult.totalCost}" />
+                <button type="submit">Aceptar y Reservar</button>
+            </form>
+        </div>
+        <div th:if="${error != null}" style="color:red;">
+            <p th:text="${error}"></p>
+        </div>
+    </main>
+</body>
+</html> 

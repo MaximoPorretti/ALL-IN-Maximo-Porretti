@@ -3,12 +3,13 @@ let currentQuote = null
 let currentFormData = null
 
 // DOM Content Loaded
-// Cuando el DOM está listo, inicializa las funciones principales
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM cargado, inicializando funciones...")
   initializeTabs()
   initializeQuoteForm()
   initializeTrackingForm()
   initializeVolumeCalculation()
+  console.log("Funciones inicializadas correctamente")
 })
 
 // Funcionalidad de pestañas
@@ -33,14 +34,27 @@ function initializeTabs() {
 
 // Funcionalidad del formulario de cotización
 function initializeQuoteForm() {
+  console.log("Inicializando formulario de cotización...")
   const form = document.getElementById("quote-form")
   const calculateBtn = document.getElementById("calculate-btn")
   const toggleBreakdownBtn = document.getElementById("toggle-breakdown")
   const acceptQuoteBtn = document.getElementById("accept-quote")
 
+  if (!form) {
+    console.error("No se encontró el formulario quote-form")
+    return
+  }
+  
+  if (!calculateBtn) {
+    console.error("No se encontró el botón calculate-btn")
+    return
+  }
+
+  console.log("Formulario y botón encontrados, agregando event listeners...")
   form.addEventListener("submit", handleQuoteSubmission)
   toggleBreakdownBtn.addEventListener("click", toggleCostBreakdown)
   acceptQuoteBtn.addEventListener("click", acceptQuote)
+  console.log("Event listeners agregados correctamente")
 }
 
 // Cálculo de volumen
@@ -84,6 +98,7 @@ async function handleQuoteSubmission(event) {
     length: Number.parseFloat(formData.get("length")) || 0,
     urgency: formData.get("urgency") === "on",
     scheduledDate: formData.get("scheduledDate"),
+    paymentMethod: formData.get("paymentMethod")
   }
 
   // Validate required fields
@@ -98,6 +113,7 @@ async function handleQuoteSubmission(event) {
 
 // Calcular cotización
 async function calculateQuote(quoteData) {
+  console.log("Iniciando cálculo de cotización:", quoteData)
   const calculateBtn = document.getElementById("calculate-btn")
   const btnText = calculateBtn.querySelector(".btn-text")
   const loadingSpinner = calculateBtn.querySelector(".loading-spinner")
@@ -108,6 +124,7 @@ async function calculateQuote(quoteData) {
   calculateBtn.disabled = true
 
   try {
+    console.log("Enviando request a /api/quote/calculate")
     const response = await fetch("/api/quote/calculate", {
       method: "POST",
       headers: {
@@ -116,12 +133,17 @@ async function calculateQuote(quoteData) {
       body: JSON.stringify(quoteData),
     })
 
+    console.log("Response status:", response.status)
+    
     if (response.ok) {
       const result = await response.json()
+      console.log("Resultado recibido:", result)
       currentQuote = result
       displayQuoteResult(result)
     } else {
-      throw new Error("Error al calcular la cotización")
+      const errorText = await response.text()
+      console.error("Error response:", errorText)
+      throw new Error("Error al calcular la cotización: " + response.status)
     }
   } catch (error) {
     console.error("Error:", error)
@@ -204,29 +226,66 @@ async function acceptQuote() {
     return
   }
 
+  // Mostrar modal de método de pago
+  document.getElementById('payment-modal').style.display = 'flex';
+
+  // Confirmar pago
+  document.getElementById('confirm-payment-btn').onclick = async function() {
+    const paymentMethod = document.getElementById('paymentMethodModal').value;
+    document.getElementById('payment-modal').style.display = 'none';
+    await processPayment(paymentMethod);
+  };
+  // Cancelar
+  document.getElementById('cancel-payment-btn').onclick = function() {
+    document.getElementById('payment-modal').style.display = 'none';
+  };
+}
+
+async function processPayment(paymentMethod) {
   const acceptBtn = document.getElementById("accept-quote")
   acceptBtn.disabled = true
   acceptBtn.textContent = "Procesando..."
 
   try {
+    // Obtener usuario logueado
+    const user = JSON.parse(localStorage.getItem("user"))
+    if (!user) {
+      alert("Debe iniciar sesión para continuar")
+      acceptBtn.disabled = false
+      acceptBtn.textContent = "Aceptar y Reservar Viaje"
+      return
+    }
+
+    const requestData = {
+      ...currentFormData,
+      totalCost: currentQuote.totalCost,
+      clienteId: user.id,
+      metodoPago: paymentMethod
+    }
+
     const response = await fetch("/api/quote/accept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(currentFormData),
+      body: JSON.stringify(requestData),
     })
 
     if (response.ok) {
-      const trackingCode = await response.text()
-      alert(`¡Cotización aceptada! Se le asignará un transportista en breve.\nCódigo de reserva: ${trackingCode}`)
-
-      // Reset form
-      document.getElementById("quote-form").reset()
-      document.getElementById("quote-result").style.display = "none"
-      document.getElementById("volume-display").style.display = "none"
-      currentQuote = null
-      currentFormData = null
+      const result = await response.json()
+      
+      if (result.success) {
+        alert(`¡Cotización aceptada! Se le asignará un transportista en breve.\nCódigo de reserva: ${result.codigoSeguimiento}`)
+        // Reset form
+        document.getElementById("quote-form").reset()
+        document.getElementById("quote-result").style.display = "none"
+        document.getElementById("volume-display").style.display = "none"
+        currentQuote = null
+        currentFormData = null
+        loadMisEnvios();
+      } else {
+        alert(`Error: ${result.message}`)
+      }
     } else {
       throw new Error("Error al procesar la solicitud")
     }
@@ -248,3 +307,10 @@ function initializeTrackingForm() {
 // Handle tracking form submission
 async function handleTrackingSubmission(event) {
   event.preventDefault()
+}
+
+// Función placeholder para cargar envíos del cliente
+function loadMisEnvios() {
+  console.log("Función loadMisEnvios llamada")
+  // Esta función se implementará cuando sea necesario
+} 
