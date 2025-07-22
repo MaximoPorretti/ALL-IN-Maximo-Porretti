@@ -7,12 +7,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import com.miapp.model.cotizacion.Cotizacion;
+import com.miapp.model.tarifas.*;
+import com.miapp.repository.CotizacionRepository;
+import com.miapp.repository.TarifaRepository;
 
 @Service
 public class CotizacionService {
     
     @Autowired
     private DistanceService distanceService;
+    @Autowired
+    private CotizacionRepository cotizacionRepository;
+    @Autowired
+    private TarifaRepository tarifaRepository;
     
     // Tarifas base
     private static final double TARIFA_POR_KM = 0.80; // $0.80 por km
@@ -20,61 +28,41 @@ public class CotizacionService {
     private static final double TARIFA_POR_M3 = 0.80; // $0.80 por m³
     private static final double CARGO_URGENCIA = 0.15; // 15% adicional
     
-    public Map<String, Object> calcularCotizacion(String origen, String destino, 
-                                                 double peso, double largo, double ancho, double alto, 
-                                                 boolean urgente) {
-        try {
-            // Calcular distancia
-            double distancia = distanceService.getDistanceInKm(origen, destino);
-            
-            // Calcular costos base
-            double costoDistancia = distancia * TARIFA_POR_KM;
-            double costopeso = peso * TARIFA_POR_KG;
-            
-            // Calcular volumen y costo por volumen
-            double volumen = (largo * ancho * alto) / 1000000; // cm³ a m³
-            double costoVolumen = volumen * TARIFA_POR_M3;
-            
-            // Usar el mayor entre costo por peso y costo por volumen
-            double costoCarga = Math.max(costopeso, costoVolumen);
-            
-            // Calcular subtotal
-            double subtotal = costoDistancia + costoCarga;
-            
-            // Aplicar cargo por urgencia si es necesario
-            double cargoUrgencia = urgente ? subtotal * CARGO_URGENCIA : 0;
-            
-            // Calcular total
-            double total = subtotal + cargoUrgencia;
-            
-            // Calcular días estimados (basado en distancia)
-            int diasEstimados = calcularDiasEstimados(distancia);
-            
-            // Generar transportistas disponibles (simulado)
-            int transportistasDisponibles = generarTransportistasDisponibles();
-            
-            // Fecha de validez (24 horas)
-            LocalDateTime ahora = LocalDateTime.now();
-            LocalDateTime validez = ahora.plusHours(24);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            
-            Map<String, Object> resultado = new HashMap<>();
-            resultado.put("totalCost", Math.round(total * 100.0) / 100.0);
-            resultado.put("baseDistance", distancia);
-            resultado.put("distanceCost", Math.round(costoDistancia * 100.0) / 100.0);
-            resultado.put("weightCost", Math.round(costopeso * 100.0) / 100.0);
-            resultado.put("volumeCost", Math.round(costoVolumen * 100.0) / 100.0);
-            resultado.put("urgencyCost", Math.round(cargoUrgencia * 100.0) / 100.0);
-            resultado.put("estimatedDays", diasEstimados);
-            resultado.put("availableDrivers", transportistasDisponibles);
-            resultado.put("validUntil", validez.format(formatter));
-            resultado.put("volume", Math.round(volumen * 1000.0) / 1000.0);
-            
-            return resultado;
-            
-        } catch (Exception e) {
-            throw new RuntimeException("Error al calcular la cotización: " + e.getMessage());
-        }
+    public Cotizacion calcularYCotizar(String origen, String destino,
+                                       double peso, double largo, double ancho, double alto,
+                                       boolean urgente) throws Exception {
+        double distancia = distanceService.getDistanceInKm(origen, destino);
+        double volumen = (largo * ancho * alto) / 1000000; // cm³ a m³
+
+        // Crear tarifas
+        TarifaPorKg tarifaKg = new TarifaPorKg(0.50, peso);
+        tarifaKg.setValor(tarifaKg.calcularTarifaKg());
+        TarifaPorEspacio tarifaEspacio = new TarifaPorEspacio(0.80, new com.miapp.model.cargas.Carga(largo, ancho, alto, peso));
+        tarifaEspacio.setValor(tarifaEspacio.calcularTarifaEspacio());
+        TarifaPorKm tarifaKm = new TarifaPorKm(0.80, distancia);
+        tarifaKm.setValor(tarifaKm.calcularTarifaKm());
+
+        // Calcular costos
+        double costoDistancia = tarifaKm.calcularTarifaKm();
+        double costoPeso = tarifaKg.calcularTarifaKg();
+        double costoVolumen = tarifaEspacio.calcularTarifaEspacio();
+        double costoCarga = costoPeso + costoVolumen; // Sumar ambos
+        double subtotal = costoDistancia + costoCarga;
+        double cargoUrgencia = urgente ? subtotal * 0.15 : 0;
+        double total = subtotal + cargoUrgencia;
+
+        // Crear cotización y asociar tarifas
+        Cotizacion cotizacion = new Cotizacion();
+        tarifaKg.setCotizacion(cotizacion);
+        tarifaEspacio.setCotizacion(cotizacion);
+        tarifaKm.setCotizacion(cotizacion);
+        cotizacion.getTarifas().add(tarifaKg);
+        cotizacion.getTarifas().add(tarifaEspacio);
+        cotizacion.getTarifas().add(tarifaKm);
+        cotizacion.setDistancia(distancia);
+        // Persistir solo la cotización (cascade se encarga de las tarifas)
+        cotizacionRepository.save(cotizacion);
+        return cotizacion;
     }
     
     private int calcularDiasEstimados(double distancia) {

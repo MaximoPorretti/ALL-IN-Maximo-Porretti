@@ -15,9 +15,9 @@ public class TarifaPorEspacio extends Tarifa {
 
     public TarifaPorEspacio() {}
 
-    public TarifaPorEspacio(double tarifa, Carga carga) {
+    public TarifaPorEspacio(double tarifa, com.miapp.model.cargas.Carga carga) {
         this.tarifa = tarifa;
-        this.carga = carga.getAltura() + carga.getAncho() + carga.getLargo();
+        this.carga = carga.getAltura() * carga.getAncho() * carga.getLargo() / 1000000.0; // volumen en m3
     }
 
     public double calcularTarifaEspacio() {

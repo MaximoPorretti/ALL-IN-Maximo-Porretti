@@ -41,4 +41,15 @@ public class DistanceService {
         return distance.getDouble("value") / 1000.0;
     }
 
+    public JSONArray getPlaceSuggestions(String input) throws Exception {
+        String encodedInput = URLEncoder.encode(input, StandardCharsets.UTF_8);
+        String url = String.format(
+            "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=%s&types=(cities)&language=es&key=%s",
+            encodedInput,
+            apiKey
+        );
+        String response = restTemplate.getForObject(url, String.class);
+        JSONObject json = new JSONObject(response);
+        return json.getJSONArray("predictions");
+    }
 }

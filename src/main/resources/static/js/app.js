@@ -54,7 +54,69 @@ function initializeQuoteForm() {
   form.addEventListener("submit", handleQuoteSubmission)
   toggleBreakdownBtn.addEventListener("click", toggleCostBreakdown)
   acceptQuoteBtn.addEventListener("click", acceptQuote)
+  // Agregar autocompletado a origen y destino
+  setupAutocomplete('origin');
+  setupAutocomplete('destination');
   console.log("Event listeners agregados correctamente")
+}
+
+function setupAutocomplete(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  // Crear contenedor de sugerencias
+  let suggestionBox = document.createElement('div');
+  suggestionBox.className = 'autocomplete-suggestions';
+  suggestionBox.style.position = 'absolute';
+  suggestionBox.style.background = '#fff';
+  suggestionBox.style.border = '1px solid #e0e7ef';
+  suggestionBox.style.zIndex = '1000';
+  suggestionBox.style.width = input.offsetWidth + 'px';
+  suggestionBox.style.maxHeight = '200px';
+  suggestionBox.style.overflowY = 'auto';
+  suggestionBox.style.display = 'none';
+  input.parentNode.appendChild(suggestionBox);
+
+  input.addEventListener('input', async function() {
+    const value = input.value.trim();
+    if (value.length < 2) {
+      suggestionBox.style.display = 'none';
+      return;
+    }
+    try {
+      const res = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(value)}`);
+      if (!res.ok) throw new Error('Error en autocompletado');
+      const predictions = JSON.parse(await res.text());
+      suggestionBox.innerHTML = '';
+      if (predictions.length === 0) {
+        suggestionBox.style.display = 'none';
+        return;
+      }
+      predictions.forEach(pred => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.style.padding = '0.5em 1em';
+        item.style.cursor = 'pointer';
+        item.style.borderBottom = '1px solid #f0f0f0';
+        item.textContent = pred.description;
+        item.onclick = function() {
+          input.value = pred.description;
+          suggestionBox.style.display = 'none';
+        };
+        suggestionBox.appendChild(item);
+      });
+      suggestionBox.style.display = 'block';
+    } catch (e) {
+      suggestionBox.style.display = 'none';
+    }
+  });
+  // Ocultar sugerencias al perder foco
+  input.addEventListener('blur', function() {
+    setTimeout(() => { suggestionBox.style.display = 'none'; }, 200);
+  });
+  // Mostrar sugerencias al enfocar si hay
+  input.addEventListener('focus', function() {
+    if (suggestionBox.innerHTML.trim() !== '') suggestionBox.style.display = 'block';
+  });
 }
 
 // Cálculo de volumen
@@ -124,8 +186,8 @@ async function calculateQuote(quoteData) {
   calculateBtn.disabled = true
 
   try {
-    console.log("Enviando request a /api/quote/calculate")
-    const response = await fetch("/api/quote/calculate", {
+    console.log("Enviando request a /cotizaciones/calcular")
+    const response = await fetch("/cotizaciones/calcular", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -136,13 +198,42 @@ async function calculateQuote(quoteData) {
     console.log("Response status:", response.status)
     
     if (response.ok) {
-      const result = await response.json()
-      console.log("Resultado recibido:", result)
-      currentQuote = result
-      displayQuoteResult(result)
+      const cotizacion = await response.json()
+      // Adaptar la respuesta para mostrar los datos relevantes
+      let total = 0
+      let costoDistancia = 0
+      let costoPeso = 0
+      let costoVolumen = 0
+      cotizacion.tarifas.forEach(tarifa => {
+        if (tarifa['@type'] === "TarifaPorKm" || tarifa.tipo_tarifa === "KM") costoDistancia = tarifa.valor
+        if (tarifa['@type'] === "TarifaPorKg" || tarifa.tipo_tarifa === "KG") costoPeso = tarifa.valor
+        if (tarifa['@type'] === "TarifaPorEspacio" || tarifa.tipo_tarifa === "ESPACIO") costoVolumen = tarifa.valor
+        total += tarifa.valor
+      })
+      // Guardar todos los datos relevantes en localStorage
+      const result = {
+        ...quoteData,
+        totalCost: total,
+        distanceCost: costoDistancia,
+        weightCost: costoPeso,
+        volumeCost: costoVolumen,
+        distancia: cotizacion.distancia, // Usar el campo correcto
+        estimatedDays: cotizacion.estimatedDays,
+        availableDrivers: cotizacion.availableDrivers,
+        validUntil: cotizacion.validUntil,
+        volume: cotizacion.volume,
+        urgency: quoteData.urgency
+      }
+      localStorage.setItem('cotizacionActual', JSON.stringify(result));
+      window.location.href = '/indexCotizacion.html';
+      return;
     } else {
       const errorText = await response.text()
       console.error("Error response:", errorText)
+      if (errorText.includes('No se encontró ruta entre los puntos')) {
+        mostrarMensajeErrorRuta();
+        return;
+      }
       throw new Error("Error al calcular la cotización: " + response.status)
     }
   } catch (error) {
@@ -153,6 +244,26 @@ async function calculateQuote(quoteData) {
     btnText.style.display = "block"
     loadingSpinner.style.display = "none"
     calculateBtn.disabled = false
+  }
+}
+
+function mostrarMensajeErrorRuta() {
+  let errorDiv = document.getElementById('ruta-error-msg');
+  if (!errorDiv) {
+    errorDiv = document.createElement('div');
+    errorDiv.id = 'ruta-error-msg';
+    errorDiv.style.background = '#fee2e2';
+    errorDiv.style.color = '#b91c1c';
+    errorDiv.style.padding = '1em';
+    errorDiv.style.margin = '1em 0';
+    errorDiv.style.borderRadius = '0.7em';
+    errorDiv.style.fontWeight = '600';
+    errorDiv.style.textAlign = 'center';
+    errorDiv.textContent = 'No se encontró ruta entre el origen y destino seleccionados. Por favor, revisa los datos o elige otra combinación.';
+    const form = document.getElementById('quote-form');
+    form.parentNode.insertBefore(errorDiv, form);
+  } else {
+    errorDiv.style.display = 'block';
   }
 }
 
@@ -307,15 +418,6 @@ function initializeTrackingForm() {
 // Handle tracking form submission
 async function handleTrackingSubmission(event) {
   event.preventDefault()
-<<<<<<< HEAD
-}
-
-// Función placeholder para cargar envíos del cliente
-function loadMisEnvios() {
-  console.log("Función loadMisEnvios llamada")
-  // Esta función se implementará cuando sea necesario
-} 
-=======
 
   const trackingCodeInput = document.getElementById("tracking-code")
   const trackingCode = trackingCodeInput.value.trim()
@@ -351,4 +453,9 @@ function loadMisEnvios() {
     resultDiv.style.display = "block"
   }
 }
->>>>>>> origin/codex/encontrar-y-corregir-un-fallo-en-el-codigo
+
+// Función placeholder para cargar envíos del cliente
+function loadMisEnvios() {
+  console.log("Función loadMisEnvios llamada")
+  // Esta función se implementará cuando sea necesario
+}

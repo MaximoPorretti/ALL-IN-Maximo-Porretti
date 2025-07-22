@@ -1,6 +1,7 @@
 package com.miapp.model.tarifas;
 
 import com.miapp.model.cotizacion.Cotizacion;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,6 +14,7 @@ public abstract class  Tarifa {
 
     @ManyToOne
     @JoinColumn(name = "cotizacion_id")
+    @JsonBackReference
     private Cotizacion cotizacion;
 
     @Column(nullable = false)
